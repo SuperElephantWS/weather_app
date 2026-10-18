@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ data.city if data else requested_city }} — Weather</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #1e3c72, #2a5298);
+      color: #fff;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 18px;
+      padding: 2rem 2.5rem;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    }
+    h1 { margin: 0 0 .25rem; font-size: 1.6rem; font-weight: 600; }
+    .condition { margin: 0 0 1.25rem; text-transform: capitalize; opacity: .85; }
+    .big-temp { font-size: 3.2rem; font-weight: 700; line-height: 1; margin-bottom: 1rem; }
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: .95rem;
+    }
+    .metrics dt { opacity: .7; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+    .metrics dd { margin: .1rem 0 0; font-size: 1.1rem; font-weight: 600; }
+    .search form { display: flex; gap: .5rem; }
+    .search input {
+      flex: 1;
+      padding: .6rem .75rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.15);
+      color: #fff;
+    }
+    .search input::placeholder { color: rgba(255,255,255,.6); }
+    .search button {
+      padding: .6rem 1rem;
+      border-radius: 10px;
+      border: none;
+      background: #fff;
+      color: #1e3c72;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .search button:hover { background: #eaf0ff; }
+    .error {
+      background: rgba(214, 69, 69, 0.25);
+      border: 1px solid rgba(214, 69, 69, 0.6);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+    .muted { opacity: .75; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    {% if error %}
+      <h1>{{ requested_city }}</h1>
+      <p class="muted">Sorry, something went wrong.</p>
+      <div class="error">{{ error }}</div>
+    {% else %}
+      <h1>{{ data.city }}</h1>
+      <p class="condition">{{ data.description }}</p>
+
+      <div class="big-temp">
+        {% if data.temp is not none %}{{ data.temp }}&deg;C{% else %}&mdash;{% endif %}
+      </div>
+
+      <dl class="metrics">
+        <div>
+          <dt>Feels like</dt>
+          <dd>{% if data.feels_like is not none %}{{ data.feels_like }}&deg;C{% else %}&mdash;{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Humidity</dt>
+          <dd>{% if data.humidity is not none %}{{ data.humidity }}%{% else %}&mdash;{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Min / Max</dt>
+          <dd>
+            {% if data.temp_min is not none and data.temp_max is not none %}
+              {{ data.temp_min }}&deg; / {{ data.temp_max }}&deg;
+            {% else %}&mdash;{% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt>Wind</dt>
+          <dd>{% if data.wind_speed is not none %}{{ data.wind_speed }} m/s{% else %}&mdash;{% endif %}</dd>
+        </div>
+      </dl>
+    {% endif %}
+
+    <form class="search" action="/" method="get">
+      <input type="text" name="city" required
+             placeholder="{{ requested_city }} (or type another city)" aria-label="City">
+      <button type="submit">Search</button>
+    </form>
+  </main>
+</body>
+</html>

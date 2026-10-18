@@ -1,0 +1,29 @@
+# --- Secrets ---------------------------------------------------------------
+# Never commit API keys / environment variables
+.env
+.env.*
+!.env.example
+
+# --- Python / virtual environments ----------------------------------------
+weather_env/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Packaging / builds ----------------------------------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Logs & temp files -----------------------------------------------------
+*.log
+.tmp/
+
+# --- OS / editor junk ------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
