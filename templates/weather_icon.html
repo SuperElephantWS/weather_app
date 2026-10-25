@@ -1,0 +1,76 @@
+{% set kind = data.icon[:2] %}
+{% set night = data.icon.endswith('n') %}
+<svg class="weather-graphic" viewBox="0 0 128 128" role="img"
+     aria-label="{{ data.description }}" data-weather="{{ data.icon }}">
+  <title>{{ data.description }}</title>
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#fff3a3"/><stop offset="1" stop-color="#ffb52e"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f1f5ff"/><stop offset="1" stop-color="#a5bdff"/>
+    </linearGradient>
+    <linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
+      {% if kind in ['04', '09', '11'] %}
+      <stop stop-color="#cbd8ed"/><stop offset="1" stop-color="#829abb"/>
+      {% else %}
+      <stop stop-color="#ffffff"/><stop offset="1" stop-color="#d0e6fc"/>
+      {% endif %}
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#091d40" flood-opacity=".25"/>
+    </filter>
+  </defs>
+
+  {% if kind in ['01', '02', '10'] %}
+  <g transform="{{ 'translate(20 16)' if kind == '01' else 'translate(0 0)' }}">
+    {% if night %}
+    <path d="M62 13a28 28 0 1 0 20 43A29 29 0 0 1 62 13Z"
+          fill="url(#moon)" filter="url(#shadow)"/>
+    <g fill="#e3edff">
+      <path d="m91 14 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z"/>
+      <circle cx="87" cy="43" r="2"/>
+    </g>
+    {% else %}
+    <g stroke="#ffd36a" stroke-width="4" stroke-linecap="round">
+      <path d="M45 6v7 M45 77v7 M6 45h7 M77 45h7 M17 17l5 5 M68 68l5 5 M17 73l5-5 M68 22l5-5"/>
+    </g>
+    <circle cx="45" cy="45" r="24" fill="url(#sun)" filter="url(#shadow)"/>
+    {% endif %}
+  </g>
+  {% endif %}
+
+  {% if kind != '01' %}
+    {% if kind in ['03', '04'] %}
+    <path d="M25 58a15 15 0 0 1-1-30 24 24 0 0 1 44-4 18 18 0 0 1 27 19 12 12 0 0 1-3 15Z"
+          fill="#9fb6d2" opacity=".85"/>
+    {% endif %}
+    <path d="M29 88a20 20 0 0 1-2-40 29 29 0 0 1 54-10 23 23 0 0 1 34 23 14 14 0 0 1-4 27Z"
+          fill="url(#cloud)" stroke="#edf5ff" stroke-opacity=".45" stroke-width="1.5"
+          filter="url(#shadow)"/>
+  {% endif %}
+
+  {% if kind in ['09', '10'] %}
+  <g fill="#62d4ff" stroke="#b4f0ff" stroke-width=".7">
+    {% for x, y in [(38, 95), (66, 98), (94, 95)] %}
+    <path d="M{{ x }} {{ y }}c-1 5-8 9-8 14a5 5 0 0 0 10 0c0-4-2-9-2-14Z"/>
+    {% endfor %}
+  </g>
+  {% elif kind == '11' %}
+  <path d="m67 77-18 26h15l-7 21 28-31H70l10-16Z"
+        fill="#ffe16b" stroke="#fff4b2" stroke-width="1.5" stroke-linejoin="round"/>
+  <g stroke="#6ed8ff" stroke-width="4" stroke-linecap="round">
+    <path d="m34 99-5 9 M101 99l-5 9"/>
+  </g>
+  {% elif kind == '13' %}
+  <g stroke="#d9f6ff" stroke-width="2.5" stroke-linecap="round">
+    {% for x, y in [(36, 104), (68, 111), (99, 102)] %}
+    <path d="M{{ x }} {{ y - 7 }}v14 M{{ x - 6 }} {{ y - 3 }}l12 6 M{{ x - 6 }} {{ y + 3 }}l12-6"/>
+    {% endfor %}
+  </g>
+  {% elif kind == '50' %}
+  <g stroke="#d4e7f5" stroke-width="5" stroke-linecap="round" opacity=".9">
+    <path d="M15 84h70 M93 84h18 M23 98h83 M13 112h24 M48 112h65"/>
+  </g>
+  {% endif %}
+</svg>

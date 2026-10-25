@@ -39,6 +39,9 @@ def fetch_weather(city):
     main = payload.get("main", {})
     weather = payload.get("weather", [{}])
     weather_desc = weather[0].get("description", "n/a") if weather else "n/a"
+    icon = weather[0].get("icon") if weather else None
+    valid_icons = {f"{code}{period}" for code in ("01", "02", "03", "04", "09", "10", "11", "13", "50") for period in ("d", "n")}
+    icon = icon if isinstance(icon, str) and icon in valid_icons else None
     wind = payload.get("wind", {})
 
     return {
@@ -49,6 +52,7 @@ def fetch_weather(city):
         "temp_max": main.get("temp_max"),
         "humidity": main.get("humidity"),
         "description": weather_desc,
+        "icon": icon,
         "wind_speed": wind.get("speed"),
     }, None
 

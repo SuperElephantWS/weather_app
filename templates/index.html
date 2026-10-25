@@ -6,6 +6,7 @@
   <title>{{ data.city if data else requested_city }} — Weather</title>
   <style>
     :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       margin: 0;
@@ -26,9 +27,21 @@
       width: 90%;
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
     }
+    .temperature-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+    .weather-graphic {
+      display: block;
+      width: clamp(64px, 23vw, 104px);
+      height: auto;
+      flex-shrink: 0;
+    }
     h1 { margin: 0 0 .25rem; font-size: 1.6rem; font-weight: 600; }
     .condition { margin: 0 0 1.25rem; text-transform: capitalize; opacity: .85; }
-    .big-temp { font-size: 3.2rem; font-weight: 700; line-height: 1; margin-bottom: 1rem; }
+    .big-temp { font-size: clamp(1.6rem, 7vw, 3.2rem); font-weight: 700; line-height: 1; }
     .metrics {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -38,9 +51,10 @@
     }
     .metrics dt { opacity: .7; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
     .metrics dd { margin: .1rem 0 0; font-size: 1.1rem; font-weight: 600; }
-    .search form { display: flex; gap: .5rem; }
+    .search { display: flex; flex-wrap: wrap; gap: .5rem; }
     .search input {
-      flex: 1;
+      flex: 1 1 140px;
+      min-width: 0;
       padding: .6rem .75rem;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,.3);
@@ -78,8 +92,13 @@
       <h1>{{ data.city }}</h1>
       <p class="condition">{{ data.description }}</p>
 
-      <div class="big-temp">
-        {% if data.temp is not none %}{{ data.temp }}&deg;C{% else %}&mdash;{% endif %}
+      <div class="temperature-row">
+        {% if data.icon %}
+          {% include 'weather_icon.html' %}
+        {% endif %}
+        <div class="big-temp">
+          {% if data.temp is not none %}{{ data.temp }}&deg;C{% else %}&mdash;{% endif %}
+        </div>
       </div>
 
       <dl class="metrics">
