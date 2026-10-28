@@ -88,7 +88,7 @@
       <h1>{{ requested_city }}</h1>
       <p class="muted">Sorry, something went wrong.</p>
       <div class="error">{{ error }}</div>
-    {% else %}
+    {% elif data %}
       <h1>{{ data.city }}</h1>
       <p class="condition">{{ data.description }}</p>
 
@@ -123,13 +123,20 @@
           <dd>{% if data.wind_speed is not none %}{{ data.wind_speed }} m/s{% else %}&mdash;{% endif %}</dd>
         </div>
       </dl>
+    {% else %}
+      <h1>Local weather</h1>
+      <p id="location-status" class="muted" role="status">Allow location access to see weather near you, or search by city.</p>
+      <noscript>Enter a city below to see its weather.</noscript>
     {% endif %}
 
     <form class="search" action="/" method="get">
       <input type="text" name="city" required
-             placeholder="{{ requested_city }} (or type another city)" aria-label="City">
+             placeholder="Enter a city" aria-label="City">
       <button type="submit">Search</button>
     </form>
   </main>
+  {% if detect_location %}
+  <script src="{{ url_for('static', filename='location.js') }}" defer></script>
+  {% endif %}
 </body>
 </html>

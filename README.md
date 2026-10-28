@@ -10,7 +10,7 @@ instead of crashing.
 
 ## Features
 
-- Current weather for a city (defaults to **New Haven**)
+- Local weather using browser location permission, with city search as a fallback
 - Look up any city via the on-page search box or a `?city=` query param
 - Rich data: temperature, feels-like, min/max, humidity, wind, condition
 - Graceful error handling (bad API key, unknown city, network timeout)
@@ -165,5 +165,16 @@ pkill -f "flask --app app run"
 
 - The app requests the **metric** unit system (°C, m/s).
 - Requests to the weather service use a **10 second timeout**, so failures surface quickly.
-- To change the default city, edit the fallback in `home()` in `app.py`:
-  `city = request.args.get("city") or "New Haven"`.
+
+## Visitor location
+
+Opening `/` requests the visitor's browser location permission and loads weather
+using `?lat=…&lon=…`. HTTPS (or localhost) is required. Embedded frames must
+delegate permission with `allow="geolocation"`; the parent site's Permissions-Policy
+must also permit it. A denied, unavailable, or timed-out location leaves city
+search available without choosing a fixed city. Explicit `?city=Boston` searches
+take precedence and do not request location again. Coordinates are sent to this
+server and OpenWeatherMap; the API key stays server-side.
+
+Verification: `python -B -m unittest discover -v` and
+`node --test location.test.cjs` (Node is needed only for JavaScript tests).

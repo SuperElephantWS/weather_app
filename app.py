@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import requests
 import os
+import math
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,24 +9,27 @@ app = Flask(__name__)
 API_KEY = os.getenv("API_KEY")
 
 
-def fetch_weather(city):
+def fetch_weather(city=None, *, latitude=None, longitude=None):
     """Fetch weather for a city and return a clean dict of values.
 
     Returns a tuple (data: dict, error: str | None). On any failure, `data`
     is an empty dict and `error` is a human-readable message.
     """
-    url = (
-        "https://api.openweathermap.org/data/2.5/weather"
-        f"?q={requests.utils.quote(city)}&appid={API_KEY}&units=metric"
-    )
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {"appid": API_KEY, "units": "metric"}
+    if city:
+        params["q"] = city
+    else:
+        params.update(lat=latitude, lon=longitude)
+    location = city or "your location"
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, params=params, timeout=10)
     except requests.RequestException as exc:
         return {}, f"Could not reach the weather service ({exc.__class__.__name__})."
 
     if response.status_code == 404:
-        return {}, f"Weather data for {city} was not found. Check the city name and try again."
+        return {}, f"Weather data for {location} was not found. Try searching by city."
     if response.status_code == 401:
         return {}, "The weather API key is invalid or missing. Check the API_KEY in your .env file."
     if response.status_code != 200:
@@ -45,7 +49,7 @@ def fetch_weather(city):
     wind = payload.get("wind", {})
 
     return {
-        "city": payload.get("name", city),
+        "city": payload.get("name") or location,
         "temp": main.get("temp"),
         "feels_like": main.get("feels_like"),
         "temp_min": main.get("temp_min"),
@@ -59,9 +63,28 @@ def fetch_weather(city):
 
 @app.route("/", methods=["GET"])
 def home():
-    city = request.args.get("city") or "New Haven"
-    data, error = fetch_weather(city)
-    return render_template("index.html", data=data, error=error, requested_city=city)
+    city = request.args.get("city", "").strip()
+    latitude = request.args.get("lat")
+    longitude = request.args.get("lon")
+    data, error = {}, None
+    has_coordinates = latitude is not None or longitude is not None
+    if city:
+        data, error = fetch_weather(city)
+    elif has_coordinates:
+        try:
+            latitude, longitude = float(latitude), float(longitude)
+            if not (math.isfinite(latitude) and math.isfinite(longitude)
+                    and -90 <= latitude <= 90 and -180 <= longitude <= 180):
+                raise ValueError
+        except (TypeError, ValueError):
+            error = "Invalid location coordinates. Try searching by city."
+        else:
+            data, error = fetch_weather(latitude=latitude, longitude=longitude)
+    return render_template(
+        "index.html", data=data, error=error,
+        requested_city=city or "Local weather",
+        detect_location=not city and not has_coordinates,
+    )
 
 
 def main():
