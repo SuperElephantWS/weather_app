@@ -72,6 +72,34 @@ class LocationTests(unittest.TestCase):
         self.assertIn(b'getCurrentPosition', response.data)
         response.close()
 
+    @patch("app.requests.get")
+    def test_strip_keeps_all_weather_details_and_search_layout(self, get):
+        get.return_value = self.weather_response
+        response = self.client.get("/?layout=strip&city=Boston")
+        for text in (b'class="weather-strip"', b'Boston', b'clear sky',
+                     b'12&deg;C', b'Feels like', b'Humidity', b'Min / Max', b'Wind',
+                     b'name="layout" value="strip"', b'/static/embed.js',
+                     b'aria-label="City"'):
+            self.assertIn(text, response.data)
+        self.assertNotIn(b'/static/location.js', response.data)
+
+    @patch("app.requests.get")
+    def test_strip_retains_detection_and_error_fallback(self, get):
+        initial = self.client.get("/?layout=strip")
+        self.assertIn(b'/static/location.js', initial.data)
+        self.assertIn(b'/static/embed.js', initial.data)
+        get.assert_not_called()
+        get.return_value = Mock(status_code=404)
+        failed = self.client.get("/?layout=strip&city=UnknownCity")
+        self.assertIn(b'not found', failed.data)
+        self.assertIn(b'name="layout" value="strip"', failed.data)
+
+    def test_standalone_page_does_not_enable_embedding(self):
+        response = self.client.get("/")
+        self.assertNotIn(b'<body class="weather-strip">', response.data)
+        self.assertNotIn(b'/static/embed.js', response.data)
+        self.assertNotIn(b'name="layout" value="strip"', response.data)
+
 
 if __name__ == "__main__":
     unittest.main()

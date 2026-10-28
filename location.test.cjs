@@ -4,7 +4,7 @@ const { readFileSync } = require('node:fs');
 const { runInNewContext } = require('node:vm');
 const script = readFileSync(`${__dirname}/static/location.js`, 'utf8');
 
-function setup(geolocation) {
+function setup(geolocation, href = 'https://weather.example/') {
   const status = { textContent: '' };
   const listeners = {};
   const redirects = [];
@@ -15,7 +15,7 @@ function setup(geolocation) {
     },
     navigator: { geolocation },
     window: { location: {
-      href: 'https://weather.example/',
+      href,
       replace: (url) => redirects.push(url),
     } },
     URL, URLSearchParams,
@@ -29,6 +29,16 @@ test('visitor coordinates replace the frame URL', () => {
     success({ coords: { latitude: 42.36, longitude: -71.06 } });
   } });
   assert.deepEqual(result.redirects, ['https://weather.example/?lat=42.36&lon=-71.06']);
+});
+
+test('location detection preserves the embedded strip layout', () => {
+  const result = setup({ getCurrentPosition(success) {
+    success({ coords: { latitude: 42.36, longitude: -71.06 } });
+  } }, 'https://weather.example/?layout=strip');
+  const url = new URL(result.redirects[0]);
+  assert.equal(url.searchParams.get('layout'), 'strip');
+  assert.equal(url.searchParams.get('lat'), '42.36');
+  assert.equal(url.searchParams.get('lon'), '-71.06');
 });
 
 test('denial, timeout, unsupported browser and thrown errors keep city search', () => {

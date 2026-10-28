@@ -26,7 +26,9 @@
         return;
       }
       const url = new URL(window.location.href);
-      url.search = new URLSearchParams({ lat: latitude, lon: longitude });
+      url.searchParams.delete('city');
+      url.searchParams.set('lat', latitude);
+      url.searchParams.set('lon', longitude);
       window.location.replace(url.href);
     }, fallback, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
   } catch {

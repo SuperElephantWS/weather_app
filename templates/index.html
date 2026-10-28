@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ data.city if data else requested_city }} — Weather</title>
+  {% set strip_layout = request.args.get('layout') == 'strip' %}
   <style>
     :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
@@ -80,17 +81,62 @@
       margin-top: 1rem;
     }
     .muted { opacity: .75; }
+
+    /* The embedded strip shares all content and behavior with the full page. */
+    body.weather-strip { min-height: 0; display: block; background: transparent; }
+    .weather-strip .card {
+      width: 100%; max-width: none; min-height: 116px;
+      padding: 16px 20px; border: 0; border-radius: 0;
+      box-shadow: none; background: transparent; backdrop-filter: none;
+      display: grid;
+      grid-template-columns: minmax(140px, 1fr) auto minmax(300px, 1.7fr) minmax(180px, 1fr);
+      align-items: center; gap: 20px;
+    }
+    .weather-strip .card > * { min-width: 0; }
+    .weather-strip h1 { font-size: 1.05rem; overflow-wrap: anywhere; }
+    .weather-strip .condition { font-size: .8rem; margin: 0; }
+    .weather-strip .temperature-row { margin: 0; gap: 6px; }
+    .weather-strip .weather-graphic { width: 52px; }
+    .weather-strip .big-temp { font-size: 1.65rem; white-space: nowrap; }
+    .weather-strip .metrics {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin: 0; gap: 12px;
+    }
+    .weather-strip .metrics dt { font-size: .65rem; }
+    .weather-strip .metrics dd { font-size: .9rem; }
+    .weather-strip .search { margin: 0; }
+    .weather-strip .search input { flex-basis: 100px; font-size: .8rem; }
+    .weather-strip .search button { padding: .6rem .75rem; font-size: .8rem; }
+    .weather-strip .weather-message { grid-column: 1 / -2; font-size: .85rem; }
+    .weather-strip .error { padding: .6rem .75rem; margin-top: .5rem; }
+    @media (max-width: 900px) {
+      .weather-strip .card { grid-template-columns: minmax(0, 1fr) auto; gap: 14px; }
+      .weather-strip .temperature-row { justify-self: end; }
+      .weather-strip .metrics,
+      .weather-strip .search,
+      .weather-strip .weather-message { grid-column: 1 / -1; }
+    }
+    @media (max-width: 520px) {
+      .weather-strip .card { padding: 14px; }
+      .weather-strip .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .weather-strip .weather-graphic { width: 44px; }
+      .weather-strip .big-temp { font-size: 1.4rem; }
+    }
   </style>
 </head>
-<body>
+<body{% if strip_layout %} class="weather-strip"{% endif %}>
   <main class="card">
     {% if error %}
+      <div class="weather-message">
       <h1>{{ requested_city }}</h1>
       <p class="muted">Sorry, something went wrong.</p>
       <div class="error">{{ error }}</div>
+      </div>
     {% elif data %}
+      <div class="weather-location">
       <h1>{{ data.city }}</h1>
       <p class="condition">{{ data.description }}</p>
+      </div>
 
       <div class="temperature-row">
         {% if data.icon %}
@@ -124,17 +170,23 @@
         </div>
       </dl>
     {% else %}
+      <div class="weather-message">
       <h1>Local weather</h1>
       <p id="location-status" class="muted" role="status">Allow location access to see weather near you, or search by city.</p>
       <noscript>Enter a city below to see its weather.</noscript>
+      </div>
     {% endif %}
 
     <form class="search" action="/" method="get">
+      {% if strip_layout %}<input type="hidden" name="layout" value="strip">{% endif %}
       <input type="text" name="city" required
              placeholder="Enter a city" aria-label="City">
       <button type="submit">Search</button>
     </form>
   </main>
+  {% if strip_layout %}
+  <script src="{{ url_for('static', filename='embed.js') }}" defer></script>
+  {% endif %}
   {% if detect_location %}
   <script src="{{ url_for('static', filename='location.js') }}" defer></script>
   {% endif %}
